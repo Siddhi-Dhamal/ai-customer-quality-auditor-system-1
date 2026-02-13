@@ -1,0 +1,10 @@
+# Ignore Python virtual environment
+newenv/
+
+# Ignore Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore SQLite DB if you want
+*.sqlite3
