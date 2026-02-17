@@ -1,13 +1,19 @@
-import csv
 import os
 import time
 from huggingface_hub import InferenceClient
+from dotenv import load_dotenv  # <--- Add this
 
-# ===== Configuration =====
-# Replace with your actual token
-HF_TOKEN = "MY_API_KEY" 
+# Load variables from the .env file
+load_dotenv()
 
-# We use Qwen2.5-72B because it is widely available on all providers right now
+# ===== CONFIGURATION =====
+# 1. Fetch your API token from the environment variable
+HF_TOKEN = os.getenv("HF_TOKEN") 
+
+if not HF_TOKEN:
+    raise ValueError("❌ Error: HF_TOKEN not found. Check your .env file.")
+
+# Initialize the official Hugging Face Client
 client = InferenceClient(api_key=HF_TOKEN)
 
 def summarize_call(transcript):
