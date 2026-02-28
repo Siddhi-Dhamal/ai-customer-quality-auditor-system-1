@@ -1,12 +1,13 @@
 import { Upload, Clock, CheckCircle2, Loader2, FileAudio, FileText } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-// Define the structure of a history item
+// Updated to match the backend CSV column names
 interface HistoryItem {
-  id: number;
-  name: string;
+  id?: number;
+  file_name: string; // Changed from 'name' to match your backend
   timestamp: string;
-  status: string;
+  summary?: string; 
+  status?: string;
 }
 
 function LeftSidebar() {
@@ -14,25 +15,25 @@ function LeftSidebar() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
-  // 1. Fetch the processing history from the Python backend
+  // 1. Fetch history with safety checks
   const fetchHistory = async () => {
     try {
       const response = await fetch('http://localhost:8000/history');
       if (response.ok) {
         const data = await response.json();
-        setHistory(data);
+        // Ensure data is an array before setting state
+        setHistory(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       console.error("Failed to fetch history:", error);
+      setHistory([]); // Reset to empty array on error to prevent .map crashes
     }
   };
 
-  // Load history when the sidebar first appears
   useEffect(() => {
     fetchHistory();
   }, []);
 
-  // 2. Handle the file upload process (Supports Audio and Text)
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -44,27 +45,54 @@ function LeftSidebar() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:8000/upload', {
-        method: 'POST',
+      let endpoint = "";
+
+      // 🔥 Smart routing logic
+      if (file.type.startsWith("audio/")) {
+        endpoint = "http://localhost:8000/upload"; // Audio server
+      } 
+      else if (file.name.toLowerCase().endsWith(".txt") || file.name.toLowerCase().endsWith(".csv")) {
+        endpoint = "http://localhost:8001/upload-text"; // Chat server
+      } 
+      else {
+        setStatus("Unsupported file type");
+        setIsProcessing(false);
+        return;
+      }
+
+      // 1. Existing Server Request (Port 8000 or 8001)
+      const response = await fetch(endpoint, {
+        method: "POST",
         body: formData,
       });
 
       if (response.ok) {
-        setStatus("Analyzed Successfully!");
-        
-        // Refresh the local history list
-        await fetchHistory(); 
+        // 🔹 NEW: Trigger Scoring Server (Port 8002) in background if it's audio
+        if (file.type.startsWith("audio/")) {
+          fetch("http://localhost:8002/analyze-quality", {
+            method: "POST",
+            body: formData,
+          }).catch(err => console.error("Scoring server connection failed:", err));
+        }
 
-        // IMPORTANT: Tell the CenterPanel to reload the new transcript/chat
-        window.dispatchEvent(new Event('refreshTranscript'));
+        setStatus("Analyzed Successfully!");
+        await fetchHistory();
+        
+        if (file.type.startsWith("audio/")) {
+          window.dispatchEvent(new CustomEvent("refreshTranscript", { detail: "audio" }));
+        } else {
+          window.dispatchEvent(new CustomEvent("refreshTranscript", { detail: "text" }));
+        }
       } else {
         setStatus("Upload Failed");
       }
+
     } catch (error) {
       console.error("Upload error:", error);
-      setStatus("Connection Error. Is Python running?");
+      setStatus("Connection Error");
     } finally {
       setIsProcessing(false);
+      event.target.value = "";
     }
   };
 
@@ -91,7 +119,7 @@ function LeftSidebar() {
         </label>
         {status && (
           <p className={`text-[11px] mt-2 text-center font-medium ${
-            status.includes('Error') ? 'text-red-400' : 'text-blue-400'
+            status.includes('Error') || status.includes('Failed') ? 'text-red-400' : 'text-blue-400'
           }`}>
             {status}
           </p>
@@ -99,18 +127,20 @@ function LeftSidebar() {
       </div>
 
       {/* Recent Analysis Section */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
           <Clock size={14} /> Recent Analysis
         </h3>
         
         <div className="space-y-3">
           {history.length > 0 ? (
-            history.map((item) => {
-              const isTextFile = item.name.endsWith('.txt') || item.name.endsWith('.csv');
+            history.map((item, index) => {
+              const fileName = item.file_name || "Unknown File";
+              const isTextFile = fileName.toLowerCase().endsWith('.txt') || fileName.toLowerCase().endsWith('.csv');
+              
               return (
                 <div 
-                  key={item.id} 
+                  key={index} 
                   className="bg-slate-800/40 border border-slate-700/50 p-3 rounded-xl hover:border-blue-500/50 transition-all cursor-pointer group"
                 >
                   <div className="flex items-start gap-3">
@@ -122,11 +152,11 @@ function LeftSidebar() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-200 truncate">{item.name}</p>
+                      <p className="text-sm font-medium text-slate-200 truncate">{fileName}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] text-slate-500">{item.timestamp}</span>
                         <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-medium">
-                          <CheckCircle2 size={10} /> {item.status}
+                          <CheckCircle2 size={10} /> Ready
                         </div>
                       </div>
                     </div>
@@ -142,13 +172,9 @@ function LeftSidebar() {
         </div>
       </div>
 
-      {/* Manual Drop Zone Info */}
-      <div className="mt-6 border-2 border-dashed border-slate-800 rounded-xl p-6 flex flex-col items-center justify-center text-slate-600">
-        <div className="bg-slate-800 p-2 rounded-lg mb-2">
-          <Upload size={20} />
-        </div>
-        <p className="text-xs font-medium text-center">Chat logs or Call audio</p>
-        <p className="text-[10px]">Supports .m4a, .mp3, .txt, .csv</p>
+      {/* Info Zone */}
+      <div className="mt-6 border-2 border-dashed border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center text-slate-600">
+        <p className="text-xs font-medium text-center">Supports .m4a, .mp3, .txt, .csv</p>
       </div>
     </div>
   );

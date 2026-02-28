@@ -1,43 +1,26 @@
-speaker,text,start,end
-SPEAKER_01,"Thank you for calling Martha's Flores, Tell Miss History.",0.82,3.43
-SPEAKER_00,"Hello, I'd like to order flowers, and I think you have what I'm looking for.",3.99,7.27
-SPEAKER_01,I'd be happy to take care of your order.,7.87,9.43
-SPEAKER_01,"May have your name, please.",9.47,10.65
-SPEAKER_00,Brando Thomas.,11.21,12.03
-SPEAKER_01,"Brando Thomas, can you spell that for me?",12.68,14.98
-SPEAKER_00,"Brando, on A-N-B-A-L-L.",15.64,19.7
-SPEAKER_00,"Provide D-H-O, N-A-N.",19.72,22.08
-SPEAKER_01,"Thank you for that information, Randle.",22.86,24.43
-SPEAKER_01,May have your home or office number area code first.,24.47,27.51
-SPEAKER_00,Very good for O-9.,27.53,30.29
-SPEAKER_00,86508.,30.86,33.38
-SPEAKER_01,That's 409-865088.,34.42,35.75
-SPEAKER_01,Do you have the facts?,36.99,39.25
-SPEAKER_01,Number or email address?,39.33,40.67
-SPEAKER_00,Email is Randall.,41.51,42.55
-SPEAKER_00,It's a dog's daughter.,43.17,44.03
-SPEAKER_00,That's gmail.com.,44.85,47.08
-SPEAKER_01,Randall.Thomas at gmail.com.,47.1,50.18
-SPEAKER_01,May have your shipping address?,50.2,51.7
-SPEAKER_00,6800.,51.72,53.0
-SPEAKER_01,Okay.,53.44,53.84
-SPEAKER_00,Badger's Avenue.,54.47,55.3
-SPEAKER_00,"So, my Texas zip code.",56.31,59.03
-SPEAKER_00,"7, 7, 7, 0, state.",59.35,61.03
-SPEAKER_01,"Glad is Avenue, Beaumont, Texas, zip code 7, 7, 7, 0, 6.",61.73,66.47
-SPEAKER_01,Thank you for the information.,66.94,68.2
-SPEAKER_01,What products are you interested in purchasing?,68.54,70.56
-SPEAKER_00,"Red roses, probably a dozen.",71.38,74.14
-SPEAKER_01,"One dozen of red roses, do you want long stems?",74.16,76.69
-SPEAKER_00,They're sure.,76.83,77.27
-SPEAKER_01,"All right, Randall.",77.85,78.79
-SPEAKER_01,Let me produce the order.,79.09,80.19
-SPEAKER_01,"One moment, please.",80.31,81.13
-SPEAKER_00,Okay.,82.89,82.99
-SPEAKER_01,"Randall, you're ordering one dozen long-standing red roses to total amount of your order is 40 dollars, and it will be shipped to your address within 24 hours.",85.17,93.8
-SPEAKER_00,We're in 24 hours.,95.08,98.17
-SPEAKER_01,Is there anything else I can help you with?,99.07,101.93
-SPEAKER_00,"That's all for now, thank you.",102.85,104.47
-SPEAKER_01,"No problem, Randall.",104.5,105.52
-SPEAKER_01,Thank you for calling Martha's flowers.,105.54,107.06
-SPEAKER_01,Have a nice day.,107.12,108.0
+speaker,text
+Speaker 00 (Agent),Thank you for calling Nissan. My name is Lauren. Can I have your name?
+Speaker 01 (Customer),"Yeah, my name is John Smith."
+Speaker 00 (Agent),"Thank you, John. How can I help you?"
+Speaker 01 (Customer),I was just calling about to see how much it would cost to update the map in my car.
+Speaker 00 (Agent),I'd be happy to help you with that today. Did you receive a mailer from us?
+Speaker 01 (Customer),I did. Do you need the customer number?
+Speaker 00 (Agent),"Yes, please."
+Speaker 01 (Customer),"Okay, it's 15243."
+Speaker 00 (Agent),"Thank you, and the year-making model of your vehicle?"
+Speaker 01 (Customer),"Yeah, I have a 2009 Nissan Altima."
+Speaker 00 (Agent),"Oh, nice car."
+Speaker 01 (Customer),"Yeah, thank you. We really enjoy it."
+Speaker 00 (Agent),"Okay, I think I found your profile here. Can I have you verify your address and phone number, please?"
+Speaker 01 (Customer),"Yes, it's 1255 North Research Way. That's in Orem, Utah, 84097. And my phone number is 01431-1000."
+Speaker 00 (Agent),"Thanks, John. I located your information. The newest version we have available for your vehicle is version 7.7, which was released in March of 2012."
+Speaker 00 (Agent),The price of the new map is $99 plus shipping and tax. Let me go ahead and set up this order for you.
+Speaker 01 (Customer),"Well, can we wait just a second? I'm not really sure if I can afford it right now."
+Speaker 00 (Agent),"All right, well, here are a few reasons to consider purchasing today. It looks as though you haven't updated your vehicle for three years."
+Speaker 00 (Agent),So that would be the equivalent of getting three years worth of updates for the price of one.
+Speaker 01 (Customer),"Oh, okay."
+Speaker 00 (Agent),"In addition, special offers like the current promotion don't come around too often."
+Speaker 00 (Agent),I would definitely recommend taking advantage of the extra $50 off before it expires.
+Speaker 01 (Customer),"Yeah, that does sound pretty good."
+Speaker 00 (Agent),"If I set this order up for you now, it'll ship out today and for $50 less. Do you have your credit card handy and I can place this order for you now?"
+Speaker 01 (Customer),"Yeah, let's go ahead and use a visa. My number is..."

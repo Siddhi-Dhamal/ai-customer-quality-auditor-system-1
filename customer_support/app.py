@@ -3,211 +3,172 @@ import shutil
 import gc
 import csv
 import pandas as pd
-import warnings
-import time
 from datetime import datetime
-from groq import Groq  # Import Groq
+from groq import Groq
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from faster_whisper import WhisperModel
 
-# --- CONFIGURATION ---
+# ---------------- CONFIG ----------------
 TRANSCRIPT_FILE = "transcriptions_with_speakers.csv"
 SUMMARY_FILE = "final_summaries.csv"
-# Get your free key at https://console.groq.com/
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")  # Use environment variable for security
-DEVICE = "cpu"
-MODEL_SIZE = "tiny" 
-COMPUTE_TYPE = "int8"
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")  # <-- Add your key
+
+# ----------------------------------------
 
 app = FastAPI()
 
-# Enable CORS for React Frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], 
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize Groq Client
 client = Groq(api_key=GROQ_API_KEY)
 
-# Initialize WhisperX for Transcription
-import whisperx
-from whisperx.diarize import DiarizationPipeline
+# Whisper Model (No diarization)
+whisper_model = WhisperModel(
+    "small", 
+    device="cpu", 
+    compute_type="int8"
+)
 
-print(f"🚀 Loading WhisperX ({MODEL_SIZE})...")
-model = whisperx.load_model(MODEL_SIZE, DEVICE, compute_type=COMPUTE_TYPE)
+# ---------------- AI ROLE + SUMMARY ----------------
 
-try:
-    # Use your existing HF token for Diarization only
-    HF_TOKEN = os.getenv("HF_TOKEN")
-    diarize_model = DiarizationPipeline(token=HF_TOKEN, device=DEVICE, model_name="pyannote/speaker-diarization-3.1")
-except:
-    diarize_model = None
+def final_ai_processor(raw_lines):
 
-# History for UI Sidebar
-analysis_history = [] 
+    # Add line numbers so LLM understands conversation flow
+    formatted_text = "\n".join(
+        [f"Line {i}: {line}" for i, line in enumerate(raw_lines)]
+    )
 
-def generate_ai_summary(text):
-    """
-    Generates a high-quality summary using Groq's Llama-3.3-70b model.
-    Strictly follows the [Name] called to [Action] resulting in [Outcome] format.
-    """
-    try:
-        print("🤖 Requesting high-speed summary from Groq...")
-        
-        # Using Llama-3.3-70b for the best quality
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {
-                    "role": "system", 
-                    "content": (
-                        "You are a professional call logger. Summarize the conversation in EXACTLY one sentence "
-                        "using this format: [Name] called to [Action] from [Business], resulting in [Outcome].\n"
-                        "Example: Brando Thomas called to order a dozen long-stem red roses from Martha's Flores, "
-                        "resulting in a successful transaction and shipment confirmation within 24 hours."
-                    )
-                },
-                {"role": "user", "content": f"Transcript: {text[:4000]}"}
-            ],
-            temperature=0.1, # Low temperature for high accuracy
-            max_tokens=100
-        )
-        
-        return completion.choices[0].message.content.strip()
-    except Exception as e:
-        print(f"❌ Groq Error: {e}")
-        return "Summary currently unavailable due to API limits."
+    completion = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are analyzing a customer support call transcript.\n"
+                    "1. Identify who is the Agent and who is the Customer.\n"
+                    "2. Label each line properly.\n"
+                    "3. Do NOT alternate automatically.\n"
+                    "4. Agent is the person answering the phone and helping.\n\n"
+                    "Return strictly in this format:\n"
+                    "Speaker 00 (Agent): text\n"
+                    "Speaker 01 (Customer): text\n"
+                    "...\n"
+                    "SUMMARY: One sentence summary."
+                ),
+            },
+            {"role": "user", "content": formatted_text},
+        ],
+        temperature=0.1,
+    )
+
+    response = completion.choices[0].message.content.strip()
+
+    lines = response.split("\n")
+    transcript_data = []
+    summary = "No summary generated."
+
+    for line in lines:
+        if line.startswith("SUMMARY:"):
+            summary = line.replace("SUMMARY:", "").strip()
+        elif ":" in line:
+            label, text = line.split(":", 1)
+            transcript_data.append(
+                {"speaker": label.strip(), "text": text.strip()}
+            )
+
+    return summary, transcript_data
+
+
+# ---------------- API ----------------
 
 @app.post("/upload")
 async def process_upload(file: UploadFile = File(...)):
+
     temp_file = f"temp_{file.filename}"
-    file_extension = file.filename.split('.')[-1].lower()
-    
+
     try:
         with open(temp_file, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        full_text_for_summary = ""
+        # 1️⃣ Transcription (No diarization)
+        segments, _ = whisper_model.transcribe(
+            temp_file,
+            beam_size=5,
+            word_timestamps=True
+        )
 
-        # --- BRANCH A: CHAT UPLOAD ---
-        # --- BRANCH A: CHAT UPLOAD (.txt or .csv) ---
-        if file_extension in ['txt', 'csv']:
-            formatted_data = []
-            speaker_map = {}
-            with open(temp_file, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-                for i, line in enumerate(lines):
-                    line = line.strip()
-                    if not line: continue
-                    
-                    # Improved logic: Check if line starts with "Name:"
-                    if ":" in line:
-                        raw_speaker, text_content = line.split(":", 1)
-                        raw_speaker = raw_speaker.strip()
-                        text_content = text_content.strip()
-                        
-                        # Create a consistent speaker ID (e.g., SPEAKER_00)
-                        if raw_speaker not in speaker_map:
-                            speaker_map[raw_speaker] = f"SPEAKER_{len(speaker_map):02d}"
-                        
-                        current_speaker = speaker_map[raw_speaker]
-                        full_text_for_summary += f" {text_content}"
-                        
-                        formatted_data.append({
-                            "speaker": current_speaker,
-                            "text": text_content,
-                            "start": i, 
-                            "end": i + 1
-                        })
-                    else:
-                        # Fallback for lines without a colon (assign to "UNKNOWN" or previous speaker)
-                        text_content = line
-                        full_text_for_summary += f" {text_content}"
-                        formatted_data.append({
-                            "speaker": "UNKNOWN",
-                            "text": text_content,
-                            "start": i, 
-                            "end": i + 1
-                        })
-            pd.DataFrame(formatted_data).to_csv(TRANSCRIPT_FILE, index=False)
+        raw_lines = [seg.text.strip() for seg in segments if seg.text.strip()]
 
-        # --- BRANCH B: AUDIO TRANSCRIPTION ---
-        else:
-            audio = whisperx.load_audio(temp_file)
-            result = model.transcribe(audio, batch_size=4)
-            
-            # Alignment & Diarization
-            model_a, metadata = whisperx.load_align_model(language_code=result["language"], device=DEVICE)
-            result = whisperx.align(result["segments"], model_a, metadata, audio, DEVICE)
-            
-            if diarize_model:
-                diarize_segments = diarize_model(audio)
-                result = whisperx.assign_word_speakers(diarize_segments, result)
-            
-            formatted_data = []
-            for seg in result["segments"]:
-                text_content = seg.get("text", "").strip()
-                full_text_for_summary += f" {text_content}"
-                formatted_data.append({
-                    "speaker": seg.get("speaker", "UNKNOWN"),
-                    "text": text_content,
-                    "start": round(seg.get("start", 0), 2),
-                    "end": round(seg.get("end", 0), 2)
-                })
-            pd.DataFrame(formatted_data).to_csv(TRANSCRIPT_FILE, index=False)
+        # 2️⃣ AI Role Detection + Summary
+        final_summary, refined_data = final_ai_processor(raw_lines)
 
-        # --- GENERATE AND SAVE SUMMARY ---
-        summary_text = generate_ai_summary(full_text_for_summary)
-        
+        # 3️⃣ Save Transcript CSV
+        pd.DataFrame(refined_data).to_csv(TRANSCRIPT_FILE, index=False)
+
+        # 4️⃣ Save Summary History
         file_exists = os.path.isfile(SUMMARY_FILE)
+
         with open(SUMMARY_FILE, mode="a", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=["file_name", "text", "summary"])
+            writer = csv.DictWriter(
+                f,
+                fieldnames=["file_name", "timestamp", "summary"],
+                quoting=csv.QUOTE_ALL,
+            )
+
             if not file_exists:
                 writer.writeheader()
-            writer.writerow({
-                "file_name": file.filename,
-                "text": full_text_for_summary[:500], 
-                "summary": summary_text
-            })
 
-        analysis_history.insert(0, {
-            "id": len(analysis_history) + 1,
-            "name": file.filename,
-            "timestamp": datetime.now().strftime("%I:%M %p"),
-            "status": "Ready"
-        })
-        
-        return {"status": "success", "summary": summary_text}
+            writer.writerow(
+                {
+                    "file_name": file.filename,
+                    "timestamp": datetime.now().strftime("%I:%M %p"),
+                    "summary": final_summary,
+                }
+            )
+
+        return {"status": "success", "summary": final_summary}
 
     finally:
-        if os.path.exists(temp_file): os.remove(temp_file)
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
         gc.collect()
+
+
+@app.get("/get-transcript")
+async def get_transcript():
+    if not os.path.exists(TRANSCRIPT_FILE):
+        return []
+    return pd.read_csv(TRANSCRIPT_FILE).to_dict(orient="records")
+
 
 @app.get("/get-summary")
 async def get_summary():
     if not os.path.exists(SUMMARY_FILE):
-        return {"summary": "No summary available."}
-    try:
-        df = pd.read_csv(SUMMARY_FILE)
-        if not df.empty:
-            # Return the latest summary from the CSV [cite: 1, 25]
-            return {"summary": df["summary"].iloc[-1]}
-    except:
-        pass
-    return {"summary": "Error reading summary file."}
+        raise HTTPException(status_code=404, detail="Summary not found")
 
-@app.get("/get-transcript")
-async def get_transcript():
-    if not os.path.exists(TRANSCRIPT_FILE): return []
-    return pd.read_csv(TRANSCRIPT_FILE).to_dict(orient="records")
+    df = pd.read_csv(SUMMARY_FILE, quoting=csv.QUOTE_ALL)
+
+    if df.empty:
+        return {"summary": "No data."}
+
+    return {"summary": df["summary"].iloc[-1]}
+
 
 @app.get("/history")
 async def get_history():
-    return analysis_history
+    if not os.path.exists(SUMMARY_FILE):
+        return []
+
+    df = pd.read_csv(SUMMARY_FILE, quoting=csv.QUOTE_ALL)
+    return df.tail(10).iloc[::-1].to_dict(orient="records")
+
 
 if __name__ == "__main__":
     import uvicorn
