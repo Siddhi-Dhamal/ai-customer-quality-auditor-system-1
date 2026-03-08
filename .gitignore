@@ -1,10 +1,21 @@
+.gitignore "venv/
+node_modules/
+
 # Ignore Python virtual environment
 newenv/
 
 # Ignore Python bytecode
 __pycache__/
 *.pyc
+.env
 *.pyo
+file_scores/ 
+file_summaries/ 
+*.csv 
+*.mp3 
+*.wav 
+*.m4a 
+*.mp4 
 
 # Ignore SQLite DB if you want
 *.sqlite3

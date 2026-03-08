@@ -1,6 +1,16 @@
 {
-    "empathy": 8,
-    "compliance": 9,
-    "resolution": 7,
-    "reasoning": "The agent showed empathy by being polite, friendly and providing reasons to consider the purchase. Compliance was high as the agent followed security protocols by asking for customer number and verifying address and phone number. Resolution was partially achieved as the agent addressed the customer's issue but the conversation was cut off before the final resolution, i.e., the payment processing."
+    "status": "success",
+    "source": "audio",
+    "total_lines_analyzed": 27,
+    "emotion_analysis": {
+        "emotion": "Satisfied",
+        "confidence": "90%",
+        "reason": "The customer completed their order smoothly and expressed thanks at the end of the call, indicating a positive experience."
+    },
+    "satisfaction_analysis": {
+        "score": "85",
+        "score_percentage": "85%",
+        "status": "Satisfied",
+        "reason": "The customer completed their request, received a clear summary of their order, and thanked the agent without expressing any complaints."
+    }
 }
