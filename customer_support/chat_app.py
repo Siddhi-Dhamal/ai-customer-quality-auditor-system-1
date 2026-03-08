@@ -30,9 +30,9 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=False,
 )
 
 dg_client = DeepgramClient(DEEPGRAM_API_KEY)
