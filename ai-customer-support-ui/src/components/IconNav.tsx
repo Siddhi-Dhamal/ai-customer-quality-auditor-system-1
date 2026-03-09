@@ -78,10 +78,9 @@ function AuraQIcon() {
     </svg>
   );
 }
-
-function IconNav({ activePage, setActivePage, onDownloadClick }: IconNavProps) {
-  return (
-    <div className="w-44 bg-[#0b1224] border-r border-white/5 flex flex-col items-center py-6 gap-2 h-screen z-10">
+    function IconNav({ activePage, setActivePage, onDownloadClick }: IconNavProps) {
+      return (
+        <div className="w-44 bg-[#0b1224] border-r border-white/5 flex flex-col items-center py-6 gap-2 h-screen z-10 hidden md:flex">
 
       {/* AuraQ Logo */}
       <div className="mb-6 flex items-center gap-3 px-3 w-full">
@@ -128,42 +127,8 @@ function IconNav({ activePage, setActivePage, onDownloadClick }: IconNavProps) {
       <div className="w-8 h-8 rounded-full bg-[#1e293b] border border-white/10 flex items-center justify-center">
         <span className="text-blue-400 font-bold text-xs font-display">Q</span>
       </div>
-    {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#0b1224] border-t border-white/10 flex md:hidden z-50">
-        <button
-          onClick={() => setActivePage('home')}
-          className={`flex-1 flex flex-col items-center py-3 text-xs gap-1
-            ${activePage === 'home' ? 'text-blue-400' : 'text-slate-500'}`}
-        >
-          <span className="text-lg">🏠</span>
-          Home
-        </button>
-        <button
-          onClick={() => setActivePage('calls')}
-          className={`flex-1 flex flex-col items-center py-3 text-xs gap-1
-            ${activePage === 'calls' ? 'text-blue-400' : 'text-slate-500'}`}
-        >
-          <span className="text-lg">📞</span>
-          Calls
-        </button>
-        <button
-          onClick={() => setActivePage('reports')}
-          className={`flex-1 flex flex-col items-center py-3 text-xs gap-1
-            ${activePage === 'reports' ? 'text-blue-400' : 'text-slate-500'}`}
-        >
-          <span className="text-lg">📊</span>
-          Reports
-        </button>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex-1 flex flex-col items-center py-3 text-xs gap-1 text-slate-500"
-        >
-          <span className="text-lg">⬇️</span>
-          Downloads
-        </button>
-      </div>
-    </div>
-  );
+    </div> 
+  ); 
 }
 
-export default Dashboard;
+export default IconNav;

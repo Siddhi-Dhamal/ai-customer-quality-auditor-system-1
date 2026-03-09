@@ -583,6 +583,40 @@ function Dashboard() {
           </div>
         </div>
       )}
+    {/* Mobile Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[#0b1224] border-t border-white/10 flex md:hidden z-50">
+        <button
+          onClick={() => setActivePage('home')}
+          className={`flex-1 flex flex-col items-center py-3 text-xs gap-1
+            ${activePage === 'home' ? 'text-blue-400' : 'text-slate-500'}`}
+        >
+          <span className="text-lg">🏠</span>
+          Home
+        </button>
+        <button
+          onClick={() => setActivePage('calls')}
+          className={`flex-1 flex flex-col items-center py-3 text-xs gap-1
+            ${activePage === 'calls' ? 'text-blue-400' : 'text-slate-500'}`}
+        >
+          <span className="text-lg">📞</span>
+          Calls
+        </button>
+        <button
+          onClick={() => setActivePage('reports')}
+          className={`flex-1 flex flex-col items-center py-3 text-xs gap-1
+            ${activePage === 'reports' ? 'text-blue-400' : 'text-slate-500'}`}
+        >
+          <span className="text-lg">📊</span>
+          Reports
+        </button>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex-1 flex flex-col items-center py-3 text-xs gap-1 text-slate-500"
+        >
+          <span className="text-lg">⬇️</span>
+          Downloads
+        </button>
+      </div>
     </div>
   );
 }
