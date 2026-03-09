@@ -490,8 +490,8 @@ function Dashboard() {
         onFileUploaded={() => setFileUploaded(true)}
         onReportData={(data) => setReportData(prev => ({ ...prev, ...data }))}
       />
-      {fileUploaded && (
-        <div className="hidden lg:flex" style={{ display: activePage === 'home' ? '' : 'none' }}>
+      {fileUploaded && activePage === 'home' && (
+        <div className="hidden lg:flex">
           <RightSidebar onReportData={(data) => setReportData(prev => ({ ...prev, ...data }))} />
         </div>
       )}
