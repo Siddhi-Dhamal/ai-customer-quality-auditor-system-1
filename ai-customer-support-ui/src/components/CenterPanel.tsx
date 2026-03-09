@@ -358,7 +358,7 @@ const runQualityScoring = async (file: File) => {
     ];
 
     return (
-      <div className="flex-1 bg-[#0b1224] h-screen overflow-y-auto p-8">
+      <div className="flex-1 bg-[#0b1224] h-screen overflow-y-auto p-4 md:p-8 pb-20 md:pb-8">
         <h2 className="font-display text-2xl font-bold text-white mb-1">Quality Reports</h2>
         <p className="text-slate-500 text-sm mb-8">AI-powered call quality scoring — auto-updates after every upload</p>
 
@@ -685,14 +685,14 @@ const runQualityScoring = async (file: File) => {
         </div>
       )}
 
-      <div className="p-8 space-y-6">
+      <div className="p-4 md:p-8 space-y-6 pb-20 md:pb-8">
         <div>
           <h2 className="font-display text-2xl font-bold text-white">Home Page</h2>
           <p className="text-blue-300/60 text-sm mt-1">Upload, transcribe and analyze customer calls</p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {stats.map((s, i) => (
             <div key={i} className="bg-[#2c364c] border border-white/5 rounded-2xl p-5 shadow-lg transition-all hover:bg-[#343e57]">
               <div className="flex items-center gap-2 mb-3">
@@ -707,7 +707,7 @@ const runQualityScoring = async (file: File) => {
 
         {/* Upload Zone */}
         <div
-          className={`upload-zone rounded-3xl p-10 flex flex-col items-center justify-center gap-4 cursor-pointer
+          className={`upload-zone rounded-3xl p-6 md:p-10 flex flex-col items-center justify-center gap-4 cursor-pointer
             bg-[#2c364c] border-2 border-dashed transition-all shadow-xl relative overflow-hidden
             ${isDragging ? "border-blue-400 bg-[#343e57]" : "border-white/10 hover:border-blue-400/50 hover:bg-[#343e57]"}`}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -729,7 +729,7 @@ const runQualityScoring = async (file: File) => {
             <Upload size={28} className="text-white" />
           </div>
           <div className="text-center">
-            <p className="text-white font-bold text-lg">Upload Your Call</p>
+            <p className="text-white font-bold text-base md:text-lg">Upload Your Call</p>
             <p className="text-blue-300/40 font-medium text-xs mt-1 uppercase tracking-wider">
               Drag and drop or click to browse • .m4a .mp3 .wav .txt .csv
             </p>
