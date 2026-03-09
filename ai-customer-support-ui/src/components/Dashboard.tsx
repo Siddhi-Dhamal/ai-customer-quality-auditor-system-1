@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import IconNav from './IconNav';
+import { API } from "../config";
 import CenterPanel from './CenterPanel';
 import RightSidebar from './RightSidebar';
 import { FileText, FileAudio, Download, X, Loader2 } from 'lucide-react';
@@ -42,7 +43,7 @@ function Dashboard() {
 
   const fetchHistoryFiles = async () => {
     try {
-      const res = await fetch('https://charming-flexibility-production.up.railway.app/list-file-scores');
+      const res = await fetch(`${API.SCORING}/list-file-scores`);
       if (res.ok) setHistoryFiles(await res.json());
     } catch {}
   };
@@ -61,7 +62,7 @@ function Dashboard() {
   const generatePDF = async (filename: string) => {
     setDownloading(filename);
     try {
-      const scoresRes = await fetch(`https://charming-flexibility-production.up.railway.app/get-file-scores/${encodeURIComponent(filename)}`);
+      const scoresRes = await fetch(`${API.SCORING}/get-file-scores/${encodeURIComponent(filename)}`);
       const scores    = scoresRes.ok ? await scoresRes.json() : null;
 
       const originalName = scores?.original_filename || filename;
@@ -69,13 +70,13 @@ function Dashboard() {
                            originalName.endsWith('.wav') || originalName.endsWith('.mp4');
 
       const summaryRes = isAudioFile
-        ? await fetch(`https://auraq-ai-customer-quality-auditor-production.up.railway.app/get-file-summary/${encodeURIComponent(originalName)}`).catch(() => null)
-        : await fetch(`https://upbeat-essence-production-929d.up.railway.app/get-file-summary/${encodeURIComponent(originalName)}`).catch(() => null);
+        ? await fetch(`{API.AUDIO}/${encodeURIComponent(originalName)}`).catch(() => null)
+        : await fetch(`{API.CHAT}/${encodeURIComponent(originalName)}`).catch(() => null);
       const summaryData = summaryRes?.ok ? await summaryRes.json() : null;
 
       const transcriptRes = isAudioFile
-        ? await fetch(`https://auraq-ai-customer-quality-auditor-production.up.railway.app/get-transcript?t=${Date.now()}`).catch(() => null)
-        : await fetch(`https://upbeat-essence-production-929d.up.railway.app/get-text-transcript?t=${Date.now()}`).catch(() => null);
+        ? await fetch(`{API.AUDIO}/${Date.now()}`).catch(() => null)
+        : await fetch(`{API.CHAT}/${Date.now()}`).catch(() => null);
       const transcriptData = transcriptRes?.ok ? await transcriptRes.json() : [];
 
       const summary = summaryData?.summary && summaryData.summary !== 'No summary available.'
@@ -110,7 +111,7 @@ function Dashboard() {
   const downloadTranscriptDoc = async (filename: string) => {
     setDownloading(filename + '_doc');
     try {
-      const scoresRes    = await fetch(`https://charming-flexibility-production.up.railway.app/get-file-scores/${encodeURIComponent(filename)}`);
+      const scoresRes    = await fetch(`${API.SCORING}/get-file-scores/${encodeURIComponent(filename)}`);
       const scores       = scoresRes.ok ? await scoresRes.json() : null;
       const originalName = scores?.original_filename || filename;
       const isAudioFile  = originalName.endsWith('.m4a') || originalName.endsWith('.mp3') ||
@@ -118,8 +119,8 @@ function Dashboard() {
 
       // Fetch transcript only
       const transcriptRes = isAudioFile
-        ? await fetch(`https://auraq-ai-customer-quality-auditor-production.up.railway.app/get-transcript?t=${Date.now()}`).catch(() => null)
-        : await fetch(`https://upbeat-essence-production-929d.up.railway.app/get-text-transcript?t=${Date.now()}`).catch(() => null);
+        ? await fetch(`${API.AUDIO}/get-transcript?t=${Date.now()}`).catch(() => null)
+        : await fetch(`${API.CHAT}/get-text-transcript?t=${Date.now()}`).catch(() => null);
       const transcriptData = transcriptRes?.ok ? await transcriptRes.json() : [];
 
       const children: any[] = [];

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API } from "../config";
 import { 
   ArrowLeft, 
   Heart, 
@@ -34,7 +35,7 @@ const AnalysisPage = () => {
 
   const fetchDetailedScores = async () => {
     try {
-      const res = await fetch(`https://caring-bravery-production.up.railway.app/get-quality-scores?t=${Date.now()}`);
+      const res = await fetch(`${API.SCORING}/get-quality-scores?t=${Date.now()}`);
       if (res.ok) {
         const json = await res.json();
         setData(json);
