@@ -247,7 +247,9 @@ function LandingPage() {
       </div>
 
       {/* STATS BAR */}
-      <div style={{ position:'relative', zIndex:1, display:'flex', justifyContent:'center', padding:'0 40px 80px' }}>
+      <div style={{ position:'relative', zIndex:1, display:'grid',
+        gridTemplateColumns:'repeat(2,1fr)', justifyContent:'center', padding:'0 20px 60px',
+        gap:2 }} className="md:grid-cols-4">
         {[
           { num:'98%', label:'Transcription Accuracy' },
           { num:'3s',  label:'Avg Analysis Time'      },
